@@ -1,8 +1,8 @@
-# Nome do projeto
+# Sistema de Matrícula
 Escreva um ou dois parágrafo resumindo o objetivo do seu projeto.
 
 ## Integrantes
-* Nome completo do aluno 1
+* Santhiago Takaesu Sampaio
 * Nome completo do aluno 2
 * Nome completo do aluno 3
 * Nome completo do aluno 4
