@@ -1,5 +1,5 @@
 
-import src.Aluno;
+import br.universidade.model.Aluno;
 import br.universidade.model.Matricula;
 
 public class SistemaDeCobranca {

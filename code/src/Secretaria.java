@@ -46,7 +46,6 @@ public class Secretaria extends Usuario {
     }
 
     public void gerarCurriculoDoSemestre(Curso curso) {
-        // lógica simples: apenas lista disciplinas do curso
         System.out.println("Currículo do curso " + curso.getNome());
         curso.getDisciplinas().forEach(d -> System.out.println(d));
     }
