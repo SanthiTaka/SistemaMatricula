@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Aluno extends Usuario {
+
     private String idAluno;
     private String nome;
     private List<Matricula> matriculas;
@@ -15,34 +16,27 @@ public class Aluno extends Usuario {
         this.matriculas = new ArrayList<>();
     }
 
-    public String getIdAluno() { 
-        return idAluno; 
+    public String getIdAluno() {
+        return idAluno;
     }
 
     public String getNome() {
-        return nome; 
+        return nome;
     }
 
-    public void setNome(String nome) { 
-        this.nome = nome; 
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public List<Matricula> getMatriculas() { 
-        return matriculas; 
+    public List<Matricula> getMatriculas() {
+        return matriculas;
     }
-    
 
-    /**
-     * Tenta matricular o aluno em uma disciplina durante um periodo.
-     * Faz validações mínimas: periodo, limite disciplinas do aluno e vagas na disciplina.
-     * Retorna a Matricula criada se sucesso, lança exceção se falhar.
-     */
     public Matricula matricularDisciplina(Disciplina disciplina, PeriodoMatricula periodo, SistemaDeCobranca cobranca) {
         if (!periodo.isAberto()) {
             throw new IllegalStateException("Período de matrícula fechado.");
         }
 
-        // Verificar se já possui matrícula ativa na disciplina
         boolean jaMatriculado = matriculas.stream()
                 .filter(m -> m.getDisciplina().equals(disciplina))
                 .anyMatch(m -> m.getStatus() == MatriculaStatus.ATIVA);
@@ -50,7 +44,6 @@ public class Aluno extends Usuario {
             throw new IllegalStateException("Aluno já matriculado nesta disciplina.");
         }
 
-        // Verificar limites do aluno (4 obrigatórias e 2 optativas)
         long obrigatoriasAtivas = matriculas.stream()
                 .filter(m -> m.getStatus() == MatriculaStatus.ATIVA)
                 .filter(m -> m.getDisciplina().isObrigatoria())
@@ -67,12 +60,11 @@ public class Aluno extends Usuario {
             throw new IllegalStateException("Limite de 2 disciplinas optativas atingido.");
         }
 
-        // Verificar vagas na disciplina
         synchronized (disciplina) {
             if (!disciplina.possuiVaga()) {
                 throw new IllegalStateException("Disciplina sem vagas.");
             }
-            // Criar matrícula
+            ''
             Matricula matricula = new Matricula(this, disciplina, periodo);
             matriculas.add(matricula);
             disciplina.adicionarMatricula(matricula);

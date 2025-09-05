@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Secretaria extends Usuario {
+
     private String nome;
     private List<Curso> cursos;
     private List<Disciplina> disciplinas;
@@ -50,7 +51,20 @@ public class Secretaria extends Usuario {
         curso.getDisciplinas().forEach(d -> System.out.println(d));
     }
 
-    public List<Aluno> getAlunos() { return alunos; }
-    public List<Professor> getProfessores() { return professores; }
-    public List<Disciplina> getDisciplinas() { return disciplinas; }
+    public List<Aluno> getAlunos() {
+        return alunos;
+    }
+
+    public List<Professor> getProfessores() {
+        return professores;
+    }
+
+    public List<Disciplina> getDisciplinas() {
+        return disciplinas;
+    }
+
+    public List<Curso> getCursos() {
+        return cursos;
+    }
+
 }

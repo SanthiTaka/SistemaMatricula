@@ -28,6 +28,11 @@ public class PeriodoMatricula {
         return aberto;
     }
 
-    public LocalDateTime getDataInicio() { return dataInicio; }
-    public LocalDateTime getDataFim() { return dataFim; }
+    public LocalDateTime getDataInicio() { return 
+        dataInicio; 
+    }
+
+    public LocalDateTime getDataFim() { 
+        return dataFim; 
+    }
 }
