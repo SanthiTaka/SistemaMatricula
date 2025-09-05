@@ -1,32 +1,109 @@
-package edu.univ.matriculas.dominio;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Aluno extends Usuario {
-    private final String matricula;
-    private Curso curso;
-    private final Set<Disciplina> obrigatorias = new HashSet<>();
-    private final Set<Disciplina> optativas = new HashSet<>();
+    private String idAluno;
+    private String nome;
+    private List<Matricula> matriculas;
 
-    public Aluno(long id, String nome, String login, String senha, String matricula, Curso curso) {
-        super(id, nome, login, hashSimples(senha));
-        this.matricula = Objects.requireNonNull(matricula);
-        this.curso = Objects.requireNonNull(curso);
+    public Aluno(String idAluno, String nome, String login, String senha) {
+        super(login, senha);
+        this.idAluno = idAluno;
+        this.nome = nome;
+        this.matriculas = new ArrayList<>();
     }
 
-    public String getMatricula() { return matricula; }
-    public Curso getCurso() { return curso; }
-    public Set<Disciplina> getObrigatorias() { return Collections.unmodifiableSet(obrigatorias); }
-    public Set<Disciplina> getOptativas() { return Collections.unmodifiableSet(optativas); }
-
-    void adicionaInterno(Disciplina d) {
-        if (d.getTipo() == TipoDisciplina.OBRIGATORIA) obrigatorias.add(d);
-        else optativas.add(d);
-    }
-    void removeInterno(Disciplina d) {
-        obrigatorias.remove(d);
-        optativas.remove(d);
+    public String getIdAluno() { 
+        return idAluno; 
     }
 
-    public int totalMatriculas() { return obrigatorias.size() + optativas.size(); }
+    public String getNome() {
+        return nome; 
+    }
+
+    public void setNome(String nome) { 
+        this.nome = nome; 
+    }
+
+    public List<Matricula> getMatriculas() { 
+        return matriculas; 
+    }
+    
+
+    /**
+     * Tenta matricular o aluno em uma disciplina durante um periodo.
+     * Faz validações mínimas: periodo, limite disciplinas do aluno e vagas na disciplina.
+     * Retorna a Matricula criada se sucesso, lança exceção se falhar.
+     */
+    public Matricula matricularDisciplina(Disciplina disciplina, PeriodoMatricula periodo, SistemaDeCobranca cobranca) {
+        if (!periodo.isAberto()) {
+            throw new IllegalStateException("Período de matrícula fechado.");
+        }
+
+        // Verificar se já possui matrícula ativa na disciplina
+        boolean jaMatriculado = matriculas.stream()
+                .filter(m -> m.getDisciplina().equals(disciplina))
+                .anyMatch(m -> m.getStatus() == MatriculaStatus.ATIVA);
+        if (jaMatriculado) {
+            throw new IllegalStateException("Aluno já matriculado nesta disciplina.");
+        }
+
+        // Verificar limites do aluno (4 obrigatórias e 2 optativas)
+        long obrigatoriasAtivas = matriculas.stream()
+                .filter(m -> m.getStatus() == MatriculaStatus.ATIVA)
+                .filter(m -> m.getDisciplina().isObrigatoria())
+                .count();
+        long optativasAtivas = matriculas.stream()
+                .filter(m -> m.getStatus() == MatriculaStatus.ATIVA)
+                .filter(m -> !m.getDisciplina().isObrigatoria())
+                .count();
+
+        if (disciplina.isObrigatoria() && obrigatoriasAtivas >= 4) {
+            throw new IllegalStateException("Limite de 4 disciplinas obrigatórias atingido.");
+        }
+        if (!disciplina.isObrigatoria() && optativasAtivas >= 2) {
+            throw new IllegalStateException("Limite de 2 disciplinas optativas atingido.");
+        }
+
+        // Verificar vagas na disciplina
+        synchronized (disciplina) {
+            if (!disciplina.possuiVaga()) {
+                throw new IllegalStateException("Disciplina sem vagas.");
+            }
+            // Criar matrícula
+            Matricula matricula = new Matricula(this, disciplina, periodo);
+            matriculas.add(matricula);
+            disciplina.adicionarMatricula(matricula);
+            // Notificar cobrança
+            if (cobranca != null) {
+                cobranca.notificarAluno(this, matricula);
+            }
+            return matricula;
+        }
+    }
+
+    public void cancelarMatricula(Matricula matricula, PeriodoMatricula periodo) {
+        if (!periodo.isAberto()) {
+            throw new IllegalStateException("Só é possível cancelar durante o período de matrícula.");
+        }
+        if (!matriculas.contains(matricula)) {
+            throw new IllegalArgumentException("Matrícula não encontrada para este aluno.");
+        }
+        matricula.setStatus(MatriculaStatus.CANCELADA);
+        matricula.getDisciplina().removerMatricula(matricula);
+    }
+
+    public List<Disciplina> listarDisciplinasAtivas() {
+        return matriculas.stream()
+                .filter(m -> m.getStatus() == MatriculaStatus.ATIVA)
+                .map(Matricula::getDisciplina)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "Aluno{" + "idAluno='" + idAluno + '\'' + ", nome='" + nome + '\'' + '}';
+    }
 }
